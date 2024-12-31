@@ -1,0 +1,127 @@
+@model IEnumerable<PausePoint.Models.Checkpoint>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2 class="pt-3">Your PausePoints</h2>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Timestamp)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td>
+                <div class="row align-items-center">
+                    <!-- Timestamp clickable link -->
+                    <a 
+                        class="col-auto pe-1" 
+                        href="javascript:void(0);"
+                        title="watch with an embedded player"
+                        onclick="playVideo('@item.Link', @item.Id)"
+                    > 
+                        @Html.DisplayFor(modelItem => item.Timestamp)
+                    </a>
+                    <button 
+                        class="col-auto btn btn-link p-0 @item.Id-playerActionOpposite" 
+                        onclick="openInNewTab('@item.Link')" 
+                        title="open video in new tab" 
+                        style="display: block"
+                    >
+                        @* open in new tab *@
+                        <i class="fas fa-up-right-from-square"></i>
+                    </button>
+                    <button 
+                        class="col-auto btn btn-link p-0 ps-3 @item.Id-playerAction" 
+                        onclick="closeVideo('@item.Id')" style="display:none;"
+                    >
+                        Close Video Player
+                    </button>
+                </div>
+                <!-- Placeholder for the video -->
+                <div id="@item.Id-videoPlayer" style="display:none;"></div>
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                @* <a asp-action="Details" asp-route-id="@item.Id">Details</a> | *@
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        function playVideo(fullUrl, itemId) {
+            var playerContainer = document.getElementById(itemId + "-videoPlayer");
+            if (playerContainer.innerHTML == '') { // Check if the player isn't already loaded
+                // Assuming the full URL is a direct YouTube watch URL, convert it to embed format
+                var embedUrl = fullUrl.replace("watch?v=", "embed/");
+                embedUrl = embedUrl.replace("&t=", "?start=");
+                embedUrl += "&autoplay=1"; // Ensure video plays automatically
+                console.log(embedUrl)
+                playerContainer.innerHTML =
+                    `<iframe width="560" height="315" src="${embedUrl}" 
+                     frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
+                     allowfullscreen></iframe>`;
+                playerContainer.style.display = "block";
+            }
+            
+            showActions(itemId);
+        }
+        
+        function showActions(itemId) {
+            for (const elem of document.getElementsByClassName(itemId + "-playerAction")) {
+                elem.style.display = "block";
+            }
+            for (const elem of document.getElementsByClassName(itemId + "-playerActionOpposite")) {
+                elem.style.display = "none";
+            }
+        }
+        
+        function closeVideo(itemId) {
+            var container = document.getElementById(itemId + "-videoPlayer");
+            container.style.display = "none"; // Hide the container
+            container.innerHTML = ''; // Optionally clear the innerHTML to unload the video player
+            
+            hideActions(itemId);
+        }
+        
+        function openInNewTab(link) {
+            window.open(link);
+        }
+
+        function hideActions(itemId) {
+            for (const elem of document.getElementsByClassName(itemId + "-playerAction")) {
+                elem.style.display = "none";
+            }
+            for (const elem of document.getElementsByClassName(itemId + "-playerActionOpposite")) {
+                elem.style.display = "block";
+            }
+        }
+    </script>
+}
